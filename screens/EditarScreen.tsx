@@ -1,16 +1,42 @@
-import { Alert, StyleSheet, Text, TextInput, View, TouchableOpacity, ScrollView, SafeAreaView } from 'react-native'
+import { Alert, StyleSheet, Text, TextInput, View, TouchableOpacity, ScrollView, SafeAreaView, KeyboardAvoidingView, Platform } from 'react-native'
 import React, { useState } from 'react'
-import { ref, update } from 'firebase/database'
+import { ref, update, get } from 'firebase/database'
 import { auth, db } from '../firebase/config'
 
 export default function EditarScreen() {
 
   const [id, setid] = useState("")
   const [titulo, seattitulo] = useState("")
-  const [anio, setanio] = useState("")
+  const [anio, setanio] = useState(1971)
   const [genero, setgenero] = useState("")
   const [imagen, setimagen] = useState("")
   const [descripcion, setdescripcion] = useState("")
+
+
+  // --- FUNCIÓN NUEVA PARA BUSCAR ---
+  function buscarPelicula() {
+    const uid = auth.currentUser?.uid;
+
+    if (id.trim() !== "") {
+      const dbRef = ref(db);
+      get(ref(db, `users/${uid}/peliculas/${id}`)).then((snapshot) => {
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          seattitulo(data.titulo || "");
+          setanio(data.creacion || "");
+          setgenero(data.genero || "");
+          setimagen(data.imagen || "");
+          setdescripcion(data.descripcion || "");
+          Alert.alert("Éxito", "Datos cargados correctamente");
+        } else {
+          Alert.alert("No encontrado", "No existe ninguna película con ese ID");
+        }
+      })
+    } else {
+      Alert.alert("ERROR", "Ingresa un ID para buscar");
+    }
+  }
+
 
   function editarPelicula() {
     const uid = auth.currentUser?.uid;
@@ -35,7 +61,7 @@ export default function EditarScreen() {
   function limpiar() {
     setid("")
     seattitulo("")
-    setanio("")
+    setanio(1971)
     setgenero("")
     setimagen("")
     setdescripcion("")
@@ -43,78 +69,88 @@ export default function EditarScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
 
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Editar <Text style={{ color: '#E50914' }}>Película</Text></Text>
-          <Text style={styles.subTitle}>Ingresa el ID exacto para modificar los datos</Text>
-        </View>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1 }}
+      >
+        <ScrollView contentContainerStyle={styles.scrollContent}>
 
-        <View style={styles.form}>
-          <Text style={styles.label}>ID de la Película (Título actual)</Text>
-          <TextInput
-            placeholder='ID del Título a buscar...'
-            placeholderTextColor="#555"
-            style={[styles.input, styles.inputHighlight]}
-            onChangeText={(texto) => setid(texto)}
-            value={id}
-          />
+          <View style={styles.header}>
+            <Text style={styles.headerTitle}>Editar <Text style={{ color: '#E50914' }}>Película</Text></Text>
+            <Text style={styles.subTitle}>Ingresa el ID exacto para modificar los datos</Text>
+          </View>
 
-          <Text style={styles.label}>Nuevo Título</Text>
-          <TextInput
-            placeholder='Nuevo nombre'
-            placeholderTextColor="#555"
-            style={styles.input}
-            onChangeText={(texto) => seattitulo(texto)}
-            value={titulo}
-          />
+          <View style={styles.form}>
+            <Text style={styles.label}>ID de la Película (Título actual)</Text>
+            <TextInput
+              placeholder='ID del Título a buscar...'
+              placeholderTextColor="#555"
+              style={[styles.input, styles.inputHighlight]}
+              onChangeText={(texto) => setid(texto)}
+              value={id}
+            />
 
-          <Text style={styles.label}>Año de Lanzamiento</Text>
-          <TextInput
-            placeholder='Ej: 2024'
-            placeholderTextColor="#555"
-            style={styles.input}
-            keyboardType='numeric'
-            onChangeText={(texto) => setanio(texto)}
-            value={anio}
-          />
+            <TouchableOpacity style={styles.button} onPress={buscarPelicula}>
+              <Text style={styles.buttonText}>Buscar por ID</Text>
+            </TouchableOpacity>
 
-          <Text style={styles.label}>Género</Text>
-          <TextInput
-            placeholder='Acción, Drama...'
-            placeholderTextColor="#555"
-            style={styles.input}
-            onChangeText={(texto) => setgenero(texto)}
-            value={genero}
-          />
+            <Text style={styles.label}>Nuevo Título</Text>
+            <TextInput
+              placeholder='Nuevo nombre'
+              placeholderTextColor="#555"
+              style={styles.input}
+              onChangeText={(texto) => seattitulo(texto)}
+              value={titulo}
+            />
 
-          <Text style={styles.label}>URL de la Imagen</Text>
-          <TextInput
-            placeholder='https://...'
-            placeholderTextColor="#555"
-            style={styles.input}
-            onChangeText={(texto) => setimagen(texto)}
-            value={imagen}
-          />
+            <Text style={styles.label}>Año de Lanzamiento</Text>
+            <TextInput
+              placeholder='Ej: 2024'
+              placeholderTextColor="#555"
+              style={styles.input}
+              keyboardType='numeric'
+              onChangeText={(texto) => setanio(+ texto)}
+              value={anio.toString()}
+            />
 
-          <Text style={styles.label}>Descripción</Text>
-          <TextInput
-            placeholder='Nueva sinopsis...'
-            placeholderTextColor="#555"
-            style={[styles.input, styles.textArea]}
-            multiline
-            numberOfLines={4}
-            onChangeText={(texto) => setdescripcion(texto)}
-            value={descripcion}
-          />
+            <Text style={styles.label}>Género</Text>
+            <TextInput
+              placeholder='Acción, Drama...'
+              placeholderTextColor="#555"
+              style={styles.input}
+              onChangeText={(texto) => setgenero(texto)}
+              value={genero}
+            />
 
-          <TouchableOpacity style={styles.button} onPress={editarPelicula}>
-            <Text style={styles.buttonText}>Actualizar Datos</Text>
-          </TouchableOpacity>
+            <Text style={styles.label}>URL de la Imagen</Text>
+            <TextInput
+              placeholder='https://...'
+              placeholderTextColor="#555"
+              style={styles.input}
+              onChangeText={(texto) => setimagen(texto)}
+              value={imagen}
+            />
 
-        </View>
+            <Text style={styles.label}>Descripción</Text>
+            <TextInput
+              placeholder='Nueva sinopsis...'
+              placeholderTextColor="#555"
+              style={[styles.input, styles.textArea]}
+              multiline
+              numberOfLines={4}
+              onChangeText={(texto) => setdescripcion(texto)}
+              value={descripcion}
+            />
 
-      </ScrollView>
+            <TouchableOpacity style={styles.button} onPress={editarPelicula}>
+              <Text style={styles.buttonText}>Actualizar Datos</Text>
+            </TouchableOpacity>
+
+          </View>
+
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   )
 }

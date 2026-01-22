@@ -7,7 +7,7 @@ export default function GuardarScreen() {
 
   const [id, seatid] = useState("")
   const [titulo, seattitulo] = useState("")
-  const [anio, seatanio] = useState(1971)
+  const [anio, seatanio] = useState("")
   const [genero, seatgenero] = useState("")
   const [imagen, seatimagen] = useState("")
   const [descripcion, seatdescripcion] = useState("")
@@ -37,7 +37,7 @@ export default function GuardarScreen() {
   function limpiar() {
     seatid("")
     seattitulo("")
-    seatanio(1971)
+    seatanio("")
     seatgenero("")
     seatimagen("")
     seatdescripcion("")
@@ -77,10 +77,10 @@ export default function GuardarScreen() {
               <Text style={styles.label}>Año</Text>
               <TextInput
                 style={styles.input}
-                placeholder="2024"
+                placeholder="Ej: 2024"
                 placeholderTextColor="#666"
                 keyboardType="numeric"
-                onChangeText={(texto) => seatanio(+ texto)}
+                onChangeText={(texto) => seatanio(texto)}
                 value={anio.toString()}
               />
             </View>

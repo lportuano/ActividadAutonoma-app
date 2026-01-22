@@ -34,7 +34,7 @@ export default function PerfilScreen({ navigation }: any) {
     function cerrarSesion() {
         signOut(auth)
             .then(() => {
-                navigation.navigate("Login")
+                navigation.navigate("Welcome")
             })
             .catch((error) => {
                 console.log("Error al cerrar sesión", error);
